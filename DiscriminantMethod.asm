@@ -1,10 +1,10 @@
 %include "io.inc"
 section .data        ;Дискриминант:      <0     >0      =0
     a dq 1.0                            ;1.0   ;1.0    ;1.0
-    b dq 5.0                            ;1.0   ;5.0    ;4.0
+    b dq 4.0                            ;1.0   ;5.0    ;4.0
     c dq 4.0                            ;1.25  ;4.0    ;4.0
-    four dq 4.0
-    two dq 2.0
+    ;four dq 4.0
+    ;two dq 2.0
     fmtR1 db 'x1=%lf',10,13,0 
     fmtR2 db 'x2=%lf',10,13,0 
     fmtI1 db 'x1=%lf + i*%lf',10,13,0 
@@ -19,10 +19,13 @@ section .bss
 section .text
 global CMAIN
 CMAIN:
-    mov ebp, esp
+    mov ebp, esp; for correct debugging
+    push dword 2
+    push dword 4
     finit 
     call Discriminant
     xor eax, eax
+    add esp, 8
     ret
     
 RealRoots:
@@ -31,7 +34,8 @@ RealRoots:
     fchs
     fadd st0, st1
     fld qword [a]
-    fld qword [two]
+    fild dword [esp + 12]
+    ;fld qword [two]
     fmul st1
     fxch st2
     fdiv st2
@@ -42,18 +46,20 @@ RealRoots:
     fchs
     fsub st0, st1
     fld qword [a]
-    fld qword [two]
+    fild dword [esp + 12]
+    ;fld qword [two]
     fmul st1
     fxch st2
     fdiv st2
     fstp qword [x2]
-ret
+    ret
 
 ImagineRoots:
     fld qword [b]
     fchs
     fld qword [a]
-    fld qword [two]
+    fild dword [esp + 12]
+    ;fld qword [two]
     fmul st1
     fxch st2
     fdiv st2
@@ -67,7 +73,8 @@ Discriminant:
     fld qword [a]
     fld qword [c]
     fmul st0, st1
-    fld qword [four]
+    fild dword [esp + 4]
+    ;fld qword [four]
     fmul st0, st1
     fld qword [b]
     fld st0
@@ -79,10 +86,11 @@ Discriminant:
     fstsw ax
     sahf
     jb DiscrLess   ;если b^2 - 4ac < 0 
-    ja DiscrMore   ;если b^2 - 4ac > 0
+    ja DiscrMore   ;если b^2 - 4ac > 0 
     call Cleaning
     fld qword [a]
-    fld qword [two]
+    fild dword [esp + 8]
+    ;fld qword [two]
     fmul st1
     fld qword [b]
     fdiv st1
@@ -92,7 +100,7 @@ Discriminant:
     push dword [x1]
     push fmtR1
     call printf 
-    add esp, 12 
+    add esp, 12
     ret
  
     DiscrMore:
